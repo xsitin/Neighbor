@@ -1,0 +1,25 @@
+@using BoardCommon
+@using Board.Infrastructure
+@using BoardCommon.Models
+
+
+<div class="container">
+    <a href="/AdPage/@Ad.SId" class="text-decoration-none">
+        <div class="card" style="width: 18rem;">
+            <img src="@Constants.ApiPath/@Ad.ImagesLinks?.FirstOrDefault()" class="card-img-top" alt="...">
+            <div class="card-body">
+                <h5 class="card-title">@Ad.Title</h5>
+                <h5 class="card-title">Категория: @Ad.Category</h5>
+                <p class="card-title">Цена: @Ad.Price</p>
+                <p class="card-text">@Ad.Description[..Math.Min(Ad.Description.Length, 30)]</p>
+            </div>
+        </div>
+    </a>
+</div>
+
+@code {
+
+    [Parameter]
+    public Ad Ad { get; set; }
+
+}

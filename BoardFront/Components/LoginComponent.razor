@@ -1,0 +1,60 @@
+@using Microsoft.AspNetCore.Components
+@using RestClient.Net
+@using BoardCommon.Models
+@using Board.Infrastructure
+@using Microsoft.Extensions.Logging
+@using Microsoft.VisualStudio.Web.CodeGeneration
+
+<EditForm Model="@AccountData" OnValidSubmit="@LoginAsync">
+    <DataAnnotationsValidator/>
+    <ValidationSummary/>
+    <div class="my-2">
+        <label for="username">Логин</label>
+        <InputText id="username" @bind-Value="@AccountData.Login" class="form-control"></InputText>
+    </div>
+    <div class="my-2">
+        <label for="password">Пароль</label>
+        <InputText type="password" id="password" @bind-Value="@AccountData.Password" class="form-control"></InputText>
+    </div>
+    <p class="my-4">
+        <button class="btn btn-primary" type="submit">login</button>
+    </p>
+</EditForm>
+
+@code
+{
+    public AccountAuth AccountData { get; set; } = new AccountAuth();
+
+    [Inject]
+    ILogger<LoginComponent> logger { get; set; }
+
+    [Inject]
+    ILocalStorageService LocalStorage { get; set; }
+
+    [Inject]
+    private NavigationManager NavigationManager { get; set; }
+
+    [Inject]
+    private IHttpClientFactory clientFactory { get; set; }
+
+
+    public async Task LoginAsync()
+    {
+        var token = await GetToken();
+        if (token is not null)
+        {
+            await LocalStorage.SetAsync(nameof(SecurityToken), token);
+            NavigationManager.NavigateTo("/", true);
+        }
+    }
+
+    private async Task<SecurityToken> GetToken()
+    {
+        var client = clientFactory.CreateClient(Constants.api);
+        var request = new HttpRequestMessage(HttpMethod.Post, new Uri(client.BaseAddress, "accounts/login"));
+        request.Content = JsonContent.Create(AccountData);
+        var response = await client.SendAsync(request);
+        logger.LogDebug("response code: {ResponseCode}", response.StatusCode);
+        return await response.Content.ReadFromJsonAsync<SecurityToken>();
+    }
+}

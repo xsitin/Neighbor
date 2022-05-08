@@ -1,0 +1,21 @@
+﻿version: "3.9"
+services:
+  api:
+    image: xsitin/neighbor-api
+    ports:
+      - "5000:5000"
+    environment:
+      ConnectionStrings_Mongo: mongodb://root:example@mongo:27017/
+      ASPNETCORE_URLS: http://0.0.0.0:5000
+      ASPNETCORE_ENVIRONMENT: Development
+  front:
+    image: xsitin/neighbor-front
+    ports:
+      - "5003:5003"
+  mongo:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    

@@ -1,0 +1,16 @@
+﻿<button class="btn btn-success" @onclick="Edit">Редактировать</button>
+
+@code {
+
+    [Parameter]
+    public string Id { get; set; }
+
+    [Inject]
+    public NavigationManager Manager { get; set; }
+
+    public void Edit()
+    {
+        Manager.NavigateTo("/AdEdit/" + Id);
+    }
+
+}

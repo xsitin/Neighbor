@@ -1,0 +1,8 @@
+﻿# syntax=docker/dockerfile:1
+FROM bitnami/dotnet-sdk
+EXPOSE 5001
+COPY . /app
+WORKDIR /app
+RUN dotnet build
+WORKDIR ./api
+CMD ["dotnet", "run"]

@@ -1,0 +1,87 @@
+﻿@inherits LayoutComponentBase
+@inject AuthenticationStateProvider _provider
+<div class="page">
+    <div class="container-fluid">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <div class="container-fluid d-flex">
+                <div class="me-auto">
+                    <a class="navbar-brand" @onclick="@OnLogoClick">Neighbor finder</a>
+                </div>
+
+                <AuthorizeView>
+                    <Authorized>
+                        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                            <span class="navbar-toggler-icon"></span>
+                        </button>
+                        <div class="collapse navbar-collapse mx-4" id="navbarNav">
+                            <ul class="navbar-nav">
+                                <li class="mx-3 nav-item">
+                                    <a class="btn btn-primary" href="/AddAd">Добавить обьявление</a>
+                                </li>
+                                <li class="mx-3 nav-item">
+                                    <a class="btn btn-light" href="/MyAds">Мои обьявление</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="">
+                            <p class="text-white card-text">@_username</p>
+                        </div>
+                        <button class="btn btn-danger mx-3" @onclick="Logout">Выйти</button>
+                    </Authorized>
+                    <NotAuthorized Context="auth">
+                        <a class="btn btn-outline-success mx-3" href="/Registration">Регистрация</a>
+                        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">Вход</button>
+                        <div class="modal fade" id="exampleModal" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h2>Вход</h2>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <LoginComponent></LoginComponent>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </NotAuthorized>
+                </AuthorizeView>
+
+            </div>
+        </nav>
+
+        <div class="container-fluid">@Body</div>
+    </div>
+
+
+</div>
+
+
+@code
+{
+    private string _username;
+
+    [Inject]
+    public NavigationManager NavigationManager { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var state = await _provider.GetAuthenticationStateAsync();
+        _username = state?.User?.Identity?.Name;
+    }
+
+    protected async Task Logout()
+    {
+        await ((CustomAuthStateProvider) _provider).Logout();
+        NavigationManager.NavigateTo("/", true);
+    }
+
+    private void OnLogoClick()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+
+
+
+
+}

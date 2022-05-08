@@ -1,0 +1,21 @@
+@using Board.Infrastructure
+<button class="btn btn-danger" @onclick="Delete">Удалить</button>
+
+@code {
+
+    [Parameter]
+    public string Id { get; set; }
+
+    [Inject]
+    AdsRepository Repository { get; set; }
+
+    [Inject]
+    NavigationManager Manager { get; set; }
+
+    public async Task Delete()
+    {
+        await Repository.RemoveByIdAsync(Id);
+        Manager.NavigateTo("/");
+    }
+
+}
