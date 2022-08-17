@@ -66,7 +66,7 @@ namespace api
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo {Title = "TheCodeBuzz-Service", Version = "v1"});
+                c.SwaggerDoc("v1", new OpenApiInfo {Title = "Neighbor api", Version = "v1"});
                 c.AddSecurityDefinition("bearer", new OpenApiSecurityScheme
                 {
                     Name = "Authorization",
