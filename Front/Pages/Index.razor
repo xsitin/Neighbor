@@ -1,0 +1,36 @@
+﻿@page "/"
+@page "/page/{page:int}"
+@using Common.Enums
+
+<div class="container">
+    <div class="row my-2 justify-content-center">
+        <div class="col-md-auto">
+            <div class="btn-group">
+                <button type="button" class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                    Категории
+                </button>
+                <ul class="dropdown-menu">
+                    @foreach (var category in Categories.Enumerated)
+                    {
+                        <li>
+                            <button class="dropdown-item" @onclick="() => CategorySelected(category)">
+                                <img src="icons/" alt="">@category
+                            </button>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+        <div class="col-sm-8">
+            
+            <form class="row" @onsubmit="SearchAdsWithSelectedTitle">
+                <input @bind-value="SearchTitle" class="col mx-auto form-control" type="search" placeholder="Search" aria-label="Search">
+                <button @onclick="@SearchAdsWithSelectedTitle" class="col-sm-auto mx-2 btn btn-outline-success" type="button">Search</button>
+            </form>
+        </div>
+    </div>
+    <AdsViewer Ads="@Ads"></AdsViewer>
+    <div class="col-md-auto">
+        <PaginationComponent PaginationInfo=@PaginationInfo CallUpdate="async () => await OnInitializedAsync()"></PaginationComponent>
+    </div>
+</div>

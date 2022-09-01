@@ -1,0 +1,17 @@
+@page "/MyAds"
+@using Board.Infrastructure
+@using Common.Models
+@inject AdsRepository _repository;
+
+@code
+{
+    private List<Ad> Ads { get; set; } = new();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        Ads = (await _repository.GetMyAsync()).ToList();
+    }
+}
+
+<AdsViewer Ads="@Ads"></AdsViewer>

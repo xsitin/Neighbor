@@ -1,0 +1,18 @@
+@using Common.Models
+<div class="container-lg row my-5 mx-auto">
+    @if (Ads.Count > 0)
+    {
+        @foreach(var ad in Ads)
+        {
+            <div class="col m-3">
+                <AdCard Ad=@ad></AdCard>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    [Parameter]
+    public List<Ad> Ads { get; set; } = new();
+    
+}

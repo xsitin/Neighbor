@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
-using api.Infrastructure;
-using BoardCommon.Models;
+using WebApi.Infrastructure;
+using Common.Models;
 using FakeItEasy;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -20,9 +20,8 @@ public class ImageRepositoryIntegrationTest
     {
         Directory.CreateDirectory(pathToFolderWithFiles);
         var mongoCollection = A.Dummy<IMongoCollection<ImageDocument>>();
-        var logger = A.Fake<ILogger<ImageRepository>>();
 
-        _repository = new ImageRepository(mongoCollection, pathToFolderWithFiles, logger);
+        _repository = new ImageRepository(mongoCollection, pathToFolderWithFiles);
     }
 
     [Test]

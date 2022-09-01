@@ -1,0 +1,64 @@
+﻿@using Common.Models
+<nav aria-label="Page navigation example">
+    <ul class="pagination justify-content-center">
+
+        <li class="page-item @IsDisabledPreviousPageArrow">
+            <a class="page-link" href="/page/@(PaginationInfo.Page - 1)" aria-label="Previous">
+                <span aria-hidden="true">&laquo;</span>
+            </a>
+        </li>
+
+        @if (PaginationInfo != null)
+        {
+            @if (PaginationInfo.Page == 1)
+            {
+                <li class="page-item active">
+
+
+                    <a class="page-link" href="/">
+                        1
+                    </a>
+                </li>
+            }
+            else
+            {
+                <li class="page-item">
+                    <a class="page-link" href="/">
+                        1
+                    </a>
+                </li>
+            }
+        }
+
+        @code{ static int i; }
+
+        @for (i = 2; i <= PaginationInfo.PageCount; i++)
+        {
+            @code{ int page = i; };
+            @if (PaginationInfo.Page == i)
+            {
+                <li class="page-item active">
+
+
+                    <a class="page-link" href="/page/@i">
+                        @i
+                    </a>
+                </li>
+            }
+            else
+            {
+                <li class="page-item">
+                    <a class="page-link" href="/page/@i">
+                        @i
+                    </a>
+                </li>
+            }
+        }
+        <li class="page-item @IsDisabledNextPageArrow">
+            <a class="page-link" aria-label="Next" href="/page/@(PaginationInfo.Page + 1)">
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+        </li>
+
+    </ul>
+</nav>
