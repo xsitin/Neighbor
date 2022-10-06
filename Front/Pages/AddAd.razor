@@ -2,7 +2,7 @@
 @using Common.Models
 @using Microsoft.AspNetCore.Authorization
 @using Common.Enums
-@using Board.Infrastructure
+@using Board.Data
 @attribute [Authorize]
 <h3>Добавить обьявление</h3>
 <div class="container-fluid">
@@ -71,7 +71,6 @@
         var state = await (State as CustomAuthStateProvider).GetAuthenticationStateAsync();
         Ad.Category ??= Categories.Enumerated.First();
         Ad.OwnerName = state.User.Identity.Name;
-        Ad.ImagesLinks = ImagesLinks?.Split(new[] {'\n', '\r', ' ', '\t'}, StringSplitOptions.RemoveEmptyEntries);
         await adsRepository.Add(Ad, images);
         Manager.NavigateTo("/");
     }

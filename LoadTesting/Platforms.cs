@@ -1,8 +1,7 @@
-﻿namespace LoadTesting
+﻿namespace LoadTesting;
+
+public enum Platforms
 {
-    public enum Platforms
-    {
-        Dotnet,
-        Nodejs
-    }
+    Dotnet,
+    Nodejs
 }

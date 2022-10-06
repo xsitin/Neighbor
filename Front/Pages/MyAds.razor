@@ -1,17 +1,17 @@
 @page "/MyAds"
-@using Board.Infrastructure
 @using Common.Models
+@using Board.Data
 @inject AdsRepository _repository;
 
 @code
 {
-    private List<Ad> Ads { get; set; } = new();
+    private PaginationInfo<Ad> Ads { get; set; } = new();
 
 
     protected override async Task OnInitializedAsync()
     {
-        Ads = (await _repository.GetMyAsync()).ToList();
+        Ads = await _repository.GetMyAsync();
     }
 }
 
-<AdsViewer Ads="@Ads"></AdsViewer>
+<AdsViewer Ads="@Ads.Items"></AdsViewer>

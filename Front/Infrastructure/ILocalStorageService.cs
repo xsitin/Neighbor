@@ -1,17 +1,16 @@
 ﻿using System.Threading.Tasks;
 
-namespace Board.Infrastructure
+namespace Board.Infrastructure;
+
+public interface ILocalStorageService
 {
-    public interface ILocalStorageService
-    {
-        Task SetAsync<T>(string key, T item)  where T: class;
+    Task SetAsync<T>(string key, T item)  where T: class;
 
-        Task SetStringAsync(string key, string value);
+    Task SetStringAsync(string key, string value);
 
-        Task<T> GetAsync<T>(string key)  where T: class;
+    Task<T> GetAsync<T>(string key)  where T: class;
 
-        Task<string> GetStringAsync(string key);
+    Task<string> GetStringAsync(string key);
 
-        Task RemoveAsync(string key);
-    }
+    Task RemoveAsync(string key);
 }

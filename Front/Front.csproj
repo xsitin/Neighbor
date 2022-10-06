@@ -3,7 +3,7 @@
     <PropertyGroup>
         <RootNamespace>Board</RootNamespace>
         <LangVersion>default</LangVersion>
-        <TargetFrameworks>net6.0;net6.0-windows</TargetFrameworks>
+        <TargetFramework>net6.0</TargetFramework>
     </PropertyGroup>
 
     <ItemGroup>

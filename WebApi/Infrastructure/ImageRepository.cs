@@ -2,65 +2,66 @@ using Common.Models;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
-namespace WebApi.Infrastructure
+namespace WebApi.Infrastructure;
+
+public class ImageRepository : IImageRepository
 {
-    public class ImageRepository : IImageRepository
+    private IMongoCollection<ImageDocument>? Collection { get; init; }
+    private readonly string pathToFilesDirectory;
+
+    public ImageRepository(IMongoCollection<ImageDocument>? collection, string pathToFilesDirectory)
     {
-        private readonly IMongoCollection<ImageDocument>? _imagesCollection;
-        private readonly string _pathToFilesDirectory;
+        Collection = collection;
+        this.pathToFilesDirectory = pathToFilesDirectory;
+    }
 
-        public ImageRepository(IMongoCollection<ImageDocument>? imagesCollection, string pathToFilesDirectory)
-        {
-            this._imagesCollection = imagesCollection;
-            this._pathToFilesDirectory = pathToFilesDirectory;
-        }
+    public byte[] GetContent(string id)
+    {
+        var builder = new FilterDefinitionBuilder<ImageDocument>();
+        var imageDocument = Collection.Find(builder.Eq<string>(x => x.Id,id)).First();
+        return File.ReadAllBytes(Path.Combine(pathToFilesDirectory, imageDocument.Path));
+    }
 
-        public byte[] Get(string id)
-        {
-            var builder = new FilterDefinitionBuilder<ImageDocument>();
-            var imageDocument = _imagesCollection.Find(builder.Eq(x => x.Id, new ObjectId(id))).First();
-            return File.ReadAllBytes(Path.Combine(_pathToFilesDirectory, imageDocument.Path));
-        }
+    private async Task Add(ImageDocument imageDocument, IFormFile img)
+    {
+        await Collection?.InsertOneAsync(imageDocument)!;
+        Directory.CreateDirectory(Path.Combine(pathToFilesDirectory,
+            imageDocument.Path.Split(Path.DirectorySeparatorChar)[0]));
+        var file = File.OpenWrite(Path.Combine(pathToFilesDirectory, imageDocument.Path));
+        var imageStream = img.OpenReadStream();
+        await imageStream.CopyToAsync(file);
+        file.Close();
+        imageStream.Close();
+    }
 
-        public async Task Add(ImageDocument imageDocument, IFormFile img)
-        {
-            await _imagesCollection?.InsertOneAsync(imageDocument)!;
-            Directory.CreateDirectory(Path.Combine(_pathToFilesDirectory,
-                imageDocument.Path.Split(Path.DirectorySeparatorChar)[0]));
-            var file = File.OpenWrite(Path.Combine(_pathToFilesDirectory, imageDocument.Path));
-            var imageStream = img.OpenReadStream();
-            await imageStream.CopyToAsync(file);
-            file.Close();
-            imageStream.Close();
-        }
+    public async Task<ImageDocument> Add(IFormFile file)
+    {
+        var doc = ImageDocument.Create();
+        await Add(doc, file);
+        return doc;
+    }
 
-        public async Task<ImageDocument> Add(IFormFile file)
-        {
-            var doc = ImageDocument.Create();
-            await Add(doc, file);
-            return doc;
-        }
+    public IEnumerable<Task<ImageDocument>> AddAll(IFormFileCollection files) =>
+        files.Select(async formFile => await Add(formFile));
 
-        public async Task DeleteAllAsync(IEnumerable<ObjectId>? ids)
-        {
-            ids = ids.ToArray();
+    public Task<ImageDocument> GetById(string id) => Task.FromResult(Collection.Find(x => x.Id == id).First());
 
-            foreach (var path in ids.Select(GetPathTo))
-                File.Delete(path);
+    public async Task Create(ImageDocument entity) => await Collection.InsertOneAsync(entity);
 
+    public Task Update(ImageDocument entity) =>
+        Task.FromResult(Collection.FindOneAndReplace(x => x.Id == entity.Id, entity));
 
-            await _imagesCollection?.DeleteManyAsync(Builders<ImageDocument>.Filter.In(x => x.Id, ids))!;
-        }
+    public Task Delete(ImageDocument entity) => Collection.DeleteOneAsync(x => x.Id == entity.Id);
 
-        public IEnumerable<Task<ImageDocument>> AddAll(IFormFileCollection files) =>
-            files.Select(async formFile => await Add(formFile));
+    public Task DeleteManyAsync(IEnumerable<string> ids)
+    {
+        var idSet = ids.ToHashSet();
+        return Collection.DeleteManyAsync(x => idSet.Contains(x.Id));
+    }
 
-        private string GetPathTo(ObjectId imageId)
-        {
-            var sid = imageId.ToString();
-            var relativePath = Path.Combine(sid.Chunk(sid.Length / 2).Select(x => new string(x)).ToArray());
-            var absolutePath = Path.Combine(_pathToFilesDirectory, relativePath);
-            return absolutePath;
-        }
+    public Task DeleteManyAsync(IEnumerable<ObjectId> ids)
+    {
+        var idSet = ids.ToHashSet();
+        return Collection.DeleteManyAsync(x => idSet.Contains(ObjectId.Parse(x.Id)));
     }
 }

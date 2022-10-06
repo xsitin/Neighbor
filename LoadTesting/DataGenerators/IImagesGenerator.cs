@@ -1,6 +1,4 @@
-﻿using Common.Models;
-
-namespace LoadTesting.DataGenerators;
+﻿namespace LoadTesting.DataGenerators;
 
 public interface IImagesGenerator
 {

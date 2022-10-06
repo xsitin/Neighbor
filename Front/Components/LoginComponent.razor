@@ -49,7 +49,7 @@
 
     private async Task<SecurityToken> GetToken()
     {
-        var client = clientFactory.CreateClient(Constants.Api);
+        var client = clientFactory.CreateClient(Constants.ApiClientName);
         var request = new HttpRequestMessage(HttpMethod.Post, new Uri(client.BaseAddress, "accounts/login"));
         request.Content = JsonContent.Create(AccountData);
         var response = await client.SendAsync(request);

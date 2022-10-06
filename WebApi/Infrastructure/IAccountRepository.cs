@@ -1,16 +1,12 @@
-using System.Threading.Tasks;
 using Common.Models;
 using MongoDB.Bson;
 
-namespace WebApi.Infrastructure
+namespace WebApi.Infrastructure;
+
+using Common.Data;
+
+public interface IAccountRepository : IRepository<Account>
 {
-    public interface IAccountRepository
-    {
-        public Task<Account?> GetByIdAsync(ObjectId id);
-        public Task<Account?> GetByLoginAsync(string login);
-        public Task CreateUserAsync(Account account);
-        public Task RemoveById(ObjectId id);
-        public Task Update(Account account);
-        public Task UpdateRole(ObjectId id, string role);
-    }
+    public Task<Account?> GetByLoginAsync(string login);
+    public Task UpdateRole(string id, Role role);
 }

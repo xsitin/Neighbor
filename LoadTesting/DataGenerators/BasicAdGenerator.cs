@@ -17,7 +17,7 @@ public class BasicAdGenerator : IAdGenerator
 
     public BasicAdGenerator(IImagesGenerator imagesGenerator, Config config)
     {
-        this.ImagesGenerator = imagesGenerator;
+        ImagesGenerator = imagesGenerator;
         this.config = config;
     }
 
@@ -37,13 +37,13 @@ public class BasicAdGenerator : IAdGenerator
             {
                 Category = category,
                 Description = TextFaker.Sentences(3),
-                Id = ObjectId.GenerateNewId(),
+                Id = ObjectId.GenerateNewId().ToString(),
                 Price = Random.Shared.Next(),
                 OwnerName = user.Item1.Name,
                 Rating = Random.Shared.Next(),
                 Title = CompanyFaker.Name()
             };
-            ad.SId = ad.Id.ToString();
+            ad.Id = ad.Id.ToString();
             result[i] = (ad, user.Item2, images);
         }
 

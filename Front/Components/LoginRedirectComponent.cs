@@ -1,14 +1,13 @@
 ﻿using Microsoft.AspNetCore.Components;
 
-namespace Board.Components
+namespace Board.Components;
+
+public class LoginRedirectComponent:ComponentBase
 {
-    public class LoginRedirectComponent:ComponentBase
+    [Inject]
+    private NavigationManager Manager { get; set; }
+    protected override void OnInitialized()
     {
-        [Inject]
-        private NavigationManager Manager { get; set; }
-        protected override void OnInitialized()
-        {
-            Manager.NavigateTo("/login");
-        }
+        Manager.NavigateTo("/login");
     }
 }

@@ -1,13 +1,17 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using MongoDB.Bson;
 
-namespace Common.Models
+namespace Common.Models;
+
+using MongoDB.Bson.Serialization.Attributes;
+
+public class Account : AccountAuth
 {
-    public class Account : AccountAuth
-    {
-        [Required]
-        public string Name { get; set; }
-        public string? Role { get; set; }
-        public ObjectId? Id { get; set; }
-    }
+    [BsonId]
+    [BsonRepresentation(BsonType.ObjectId)]
+    public string? Id { get; set; }
+
+    [Required] public string Name { get; set; }
+    [BsonRepresentation(BsonType.String)]
+     public Role Role { get; set; }
 }

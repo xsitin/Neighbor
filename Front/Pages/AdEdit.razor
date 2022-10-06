@@ -3,6 +3,7 @@
 @using Microsoft.AspNetCore.Authorization
 @using Board.Infrastructure
 @using Common.Enums
+@using Board.Data
 @attribute [Authorize]
 
 <h3>Добавить обьявление</h3>
@@ -44,8 +45,6 @@
 
 @code {
 
-    private string ImageLinks { get; set; }
-
     private string Price
     {
         get => Ad.Price.ToString();
@@ -76,8 +75,7 @@
         var state = await (State as CustomAuthStateProvider).GetAuthenticationStateAsync();
         Ad.Category ??= Categories.Enumerated.First();
         Ad.OwnerName = state.User.Identity.Name;
-        Ad.SId = Id;
-        Ad.ImagesLinks = ImageLinks?.Split(new[] {'\n', '\r', ' ', '\t'}, StringSplitOptions.RemoveEmptyEntries);
+        Ad.Id = Id;
         await _repository.Update(Ad, images);
         Manager.NavigateTo("/");
     }

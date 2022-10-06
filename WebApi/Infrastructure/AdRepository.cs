@@ -2,122 +2,107 @@
 using MongoDB.Bson;
 using MongoDB.Driver;
 
-namespace WebApi.Infrastructure
+namespace WebApi.Infrastructure;
+
+using Common.Data;
+using domain;
+
+public class AdRepository : IAdRepository
 {
-    public class AdRepository
+    private IMongoCollection<Ad> Collection { get; }
+    private IImageRepository ImageRepository { get; }
+    private IRatingCalculator RatingCalculator { get; }
+
+
+    public AdRepository(IMongoDatabase db, IRatingCalculator ratingCalculator, IImageRepository imageRepository)
     {
-        private IMongoCollection<Ad> Collection { get; }
-        private IImageRepository ImageRepository { get; }
-        private IRatingCalculator RatingCalculator { get; }
+        RatingCalculator = ratingCalculator;
+        ImageRepository = imageRepository;
+        Collection = db.GetCollection<Ad>("Ads");
+    }
 
-
-        public AdRepository(IMongoDatabase db, IRatingCalculator ratingCalculator, IImageRepository imageRepository)
+    private static FilterDefinition<Ad> BuildFilter(AdRequest request, out SortDefinition<Ad>? sort)
+    {
+        var builder = new FilterDefinitionBuilder<Ad>();
+        var filters = new List<FilterDefinition<Ad>>();
+        sort = null;
+        if (request.Types.HasFlag(DataRequestTypes.Popular))
         {
-            RatingCalculator = ratingCalculator;
-            ImageRepository = imageRepository;
-            Collection = db.GetCollection<Ad>("Ads");
+            sort = Builders<Ad>.Sort.Descending(x => x.Rating);
         }
 
-        public async Task<Ad> GetByIdAsync(ObjectId id)
+        if (request.Types.HasFlag(DataRequestTypes.Search))
         {
-            var result = await Collection.FindOneAndUpdateAsync(model => model.Id == id,
-                new UpdateDefinitionBuilder<Ad>().Inc(x => x.Rating, 1));
-            result.SId = result.Id.ToString();
-            result.Id = null;
-            return result;
+            filters.Add(new ExpressionFilterDefinition<Ad>(x =>
+                x.Title.ToLowerInvariant().Contains(request.Query) ||
+                x.Description.ToLowerInvariant().Contains(request.Query) ||
+                x.OwnerName.ToLowerInvariant().Contains(request.Query)));
         }
 
-
-        public async Task<Ad[]> GetByUserNameAsync(string name)
+        if (request.Types.HasFlag(DataRequestTypes.FromUser))
         {
-            var cursor = await Collection.FindAsync(x => x.OwnerName == name);
-            cursor.MoveNext();
-            var ads = cursor.Current.ToArray();
-            foreach (var ad in ads) ad.SId = ad.Id.ToString();
-            return ads;
+            filters.Add(builder.Eq(x => x.OwnerName, request.Username));
         }
 
-        public async Task<PaginationInfo<Ad>> GetRecommendedAsync(int page, int pageSize)
+        if (request.Types.HasFlag(DataRequestTypes.FromCategory))
         {
-            var filter = Builders<Ad>.Filter.Empty;
-            var cursor = await Collection.FindAsync(filter,
-                new FindOptions<Ad>()
-                {
-                    Limit = pageSize,
-                    Skip = (page - 1) * pageSize,
-                    Sort = Builders<Ad>.Sort.Descending(ad => ad.Rating)
-                });
-            var count = (int) await Collection.CountDocumentsAsync(filter);
-            var paginationInfo = new PaginationInfo<Ad>
+            filters.Add(builder.Eq(x => x.Category, request.Category));
+        }
+
+        var filter = filters.Count > 0 ? builder.And(filters) : FilterDefinition<Ad>.Empty;
+        return filter;
+    }
+
+    public async Task<Ad?> GetById(string id)
+    {
+        var result = await Collection.FindOneAndUpdateAsync(model => model.Id == id,
+            new UpdateDefinitionBuilder<Ad>().Inc(x => x.Rating, 1));
+        return result;
+    }
+
+    public async Task Create(Ad entity)
+    {
+        entity.Id = ObjectId.GenerateNewId().ToString();
+        entity.Rating = RatingCalculator.GetRating(entity);
+        await Collection.InsertOneAsync(entity);
+    }
+
+    public async Task Update(Ad entity)
+    {
+        var saved = await GetById(entity.Id);
+        if (saved.ImagesIds != null)
+            await ImageRepository.DeleteManyAsync(saved.ImagesIds);
+        entity.Rating = saved.Rating;
+        await Collection.ReplaceOneAsync(x => x.Id == entity.Id, entity);
+    }
+
+    public async Task Delete(Ad entity)
+    {
+        var ad = await Collection.FindOneAndDeleteAsync(x => x.Id == entity.Id);
+        await ImageRepository.DeleteManyAsync(ad.ImagesIds);
+    }
+
+
+    public async Task<PaginationInfo<Ad>> GetPage(AdRequest request)
+    {
+        var filter = BuildFilter(request, out var sort);
+
+        var cursor = await Collection.FindAsync(filter,
+            new FindOptions<Ad>()
             {
-                ItemsCount = count,
-                Page = page,
-                PageCount = (int) Math.Ceiling(((double)count) / pageSize),
-                PageSize = pageSize,
-                Items = cursor.ToEnumerable().ToList()
-            };
-
-            return paginationInfo;
-        }
-
-        public async Task AddAsync(Ad ad, IFormFileCollection images)
+                Sort = sort,
+                Limit = request.PaginationInfo.PageSize,
+                Skip = (request.PaginationInfo.Page - 1) * request.PaginationInfo.PageSize
+            });
+        var count = await Collection.CountDocumentsAsync(filter);
+        var paginationInfo = new PaginationInfo<Ad>()
         {
-            var imgDocs = ImageRepository.AddAll(images).ToArray();
-            ad.Id = ObjectId.GenerateNewId();
-            ad.Rating = RatingCalculator.GetRating(ad);
-            ad.ImagesLinks = imgDocs.Select(x => "img/get/" + x.Result.Id).ToArray();
-            ad.ImagesIds = imgDocs.Select(x => x.Result.Id).ToArray();
-            await Collection.InsertOneAsync(ad);
-        }
-
-        public async Task UpdateAsync(Ad ad, IFormFileCollection images)
-        {
-            var previous = await GetByIdAsync(new ObjectId(ad.SId));
-            var imgDocs = ImageRepository.AddAll(images).Select(x => x.Result).ToArray();
-            var imagesId = imgDocs.Select(x => x.Id);
-            var imagesLinks = imgDocs.Select(x => "img/get/" + x.Id).ToArray();
-            await ImageRepository.DeleteAllAsync(previous.ImagesIds);
-            await Collection.UpdateOneAsync(Builders<Ad>.Filter.Where(x => x.Id == ObjectId.Parse(ad.SId)),
-                Builders<Ad>.Update
-                    .Set(x => x.Category, ad.Category)
-                    .Set(x => x.Description, ad.Description)
-                    .Set(x => x.Title, ad.Title)
-                    .Set(x => x.Price, ad.Price)
-                    .Set(x => x.ImagesIds, imagesId)
-                    .Set(x => x.ImagesLinks, imagesLinks)
-            );
-        }
-
-        public async Task DeleteAsync(ObjectId id)
-        {
-            var ad = await Collection.FindOneAndDeleteAsync(x => x.Id == id);
-            await ImageRepository.DeleteAllAsync(ad.ImagesIds);
-        }
-
-        public async Task<Ad[]> GetSimilar(string searchText, int page = 1, int pageSize = 21)
-        {
-            searchText = searchText.ToLowerInvariant();
-            var filter = new ExpressionFilterDefinition<Ad>(x =>
-                x.Title.ToLowerInvariant().Contains(searchText) ||
-                x.Description.ToLowerInvariant().Contains(searchText) ||
-                x.OwnerName.ToLowerInvariant().Contains(searchText));
-            var cursor = await Collection.FindAsync(filter,
-                new FindOptions<Ad>() {Limit = pageSize, Skip = (page - 1) * pageSize});
-            await cursor.MoveNextAsync();
-            return cursor.Current.ToArray();
-        }
-
-        public async Task<Ad[]> GetWithCategory(string category, int page = 1, int pageSize = 21)
-        {
-            var filter = new ExpressionFilterDefinition<Ad>(x => x.Category == category);
-            var cursor = await Collection.FindAsync(filter,
-                new FindOptions<Ad> {Limit = pageSize, Skip = (page - 1) * pageSize});
-            await cursor.MoveNextAsync();
-            return cursor.Current.Select(x =>
-            {
-                x.SId = x.Id.ToString();
-                return x;
-            }).ToArray();
-        }
+            Items = cursor.ToList(),
+            Page = request.PaginationInfo.Page,
+            PageSize = request.PaginationInfo.PageSize,
+            ItemsCount = (int)count,
+            PageCount = (int)Math.Ceiling(((double)count) / request.PaginationInfo.PageSize)
+        };
+        return paginationInfo;
     }
 }

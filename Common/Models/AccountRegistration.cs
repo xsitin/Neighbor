@@ -1,10 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Common.Models
+namespace Common.Models;
+
+public class AccountRegistration:AccountAuth
 {
-    public class AccountRegistration:AccountAuth
-    {
-        [Required]
-        public string Name { get; set; }
-    }
+    [Required]
+    public string Name { get; set; }
 }

@@ -1,8 +1,6 @@
 ﻿using LoadTesting;
-using LoadTesting.DataGenerators;
 using NBomber.Contracts;
 using NBomber.CSharp;
-using NBomber.Plugins.Http.CSharp;
 
 
 var config = new Config

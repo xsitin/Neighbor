@@ -1,10 +1,7 @@
-﻿using MongoDB.Bson;
+﻿namespace Common.Models;
 
-namespace Common.Models
+public class AccountView
 {
-    public class AccountView
-    {
-        public string Name { get; set; }
-        public string Id { get; set; }
-    }
+    public string Name { get; set; }
+    public string Id { get; set; }
 }

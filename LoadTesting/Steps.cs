@@ -1,6 +1,5 @@
 ﻿using System.Net.Http.Json;
 using Common.Models;
-using Microsoft.FSharp.Core;
 using NBomber.Contracts;
 using NBomber.CSharp;
 using NBomber.Plugins.Http.CSharp;
@@ -34,7 +33,7 @@ public class Steps
                 {
                     var ad = ads[i];
 
-                    tasks[i] = await context.Client.GetAsync(config.baseUrl + ad.ImagesLinks[0]);
+                    tasks[i] = await context.Client.GetAsync(config.baseUrl + "img/get/"+ad.ImagesIds[0]);
                 }
 
                 length += tasks.Sum(x => (int) x.Content.ReadAsStream().Length);
