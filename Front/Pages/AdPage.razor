@@ -1,10 +1,9 @@
 @page "/AdPage/{id}"
+@using Board.Data
 @using Board.Infrastructure
 @using Common.Models
-@using Board.Data
-@using System.Security.Policy
-@inject AdsRepository _repository
-@inject AuthenticationStateProvider _provider
+@inject AdsRepository Repository
+@inject AuthenticationStateProvider Provider
 @if (Ad != null)
 {
     <div class="container-fluid m-4">
@@ -18,13 +17,13 @@
                                 <div id="carousel" class="carousel slide w-50" data-bs-ride="carousel">
                                     <div class="carousel-inner justify-content-center">
                                         <div class="carousel-item active justify-content-center">
-                                            @{ var link = new Uri(new Uri(Constants.ApiPath), "img/get/" + Ad.ImagesIds[0]).ToString(); }
+                                            @{ var link = ImageHelper.GetImageLink(Ad.ImagesIds[0]).ToString(); }
                                             <img class="d-block w-100" src="@link" alt="ad image">
                                         </div>
                                         @foreach (var id in Ad.ImagesIds.Skip(1))
                                         {
                                             <div class="carousel-item img-fluid justify-content-center">
-                                                @{ link = new Uri(new Uri(Constants.ApiPath), "img/get/" + id).ToString(); }
+                                                @{ link = ImageHelper.GetImageLink(id).ToString(); }
                                                 <img class="d-block w-100" src="@link" alt="ad image">
                                             </div>
                                         }
@@ -87,10 +86,13 @@
     private AuthenticationState _state;
     public Ad Ad { get; set; }
 
+    [Inject]
+    public ImageHelper ImageHelper { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
-        Ad = await _repository.GetByIdAsync(Id);
-        _state = await _provider.GetAuthenticationStateAsync();
+        Ad = await Repository.GetByIdAsync(Id);
+        _state = await Provider.GetAuthenticationStateAsync();
     }
 
 }

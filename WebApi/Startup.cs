@@ -72,7 +72,7 @@ public class Startup
         services.AddControllers();
         services.AddSwaggerGen(c =>
         {
-            c.SwaggerDoc("v1", new OpenApiInfo {Title = "Neighbor WebApi", Version = "v1"});
+            c.SwaggerDoc("v1", new OpenApiInfo { Title = "Neighbor WebApi", Version = "v1" });
             c.AddSecurityDefinition("bearer", new OpenApiSecurityScheme
             {
                 Name = "Authorization",
@@ -86,6 +86,7 @@ public class Startup
             c.OperationFilter<AuthOperationFilter>();
         });
     }
+
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {

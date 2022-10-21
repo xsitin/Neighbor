@@ -29,7 +29,7 @@ public class AccountRepository : IAccountRepository
 
     public async Task Update(Account account)
     {
-        var filter = new ExpressionFilterDefinition<Account>(x => x.Id == account.Id);
+        var filter = new ExpressionFilterDefinition<Account>(x => x.Login == account.Login);
         var updateDefinition = Builders<Account>
             .Update
             .Set(x => x.Login, account.Login)

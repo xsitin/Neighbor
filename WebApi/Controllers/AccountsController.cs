@@ -11,32 +11,39 @@ using WebApi.Infrastructure;
 
 namespace WebApi.Controllers;
 
+using System.Text.Json;
+using Mapster;
+
 [Route("accounts")]
 [ApiController]
 public class AccountsController : Controller
 {
-    private IAccountRepository Repository { get; set; }
+    private IAccountRepository AccountRepository { get; }
+    private IImageRepository ImageRepository { get; }
     private readonly ILogger<AccountsController> logger;
 
-    public AccountsController(IAccountRepository repository, ILogger<AccountsController> logger)
+
+    public AccountsController(IAccountRepository accountRepository, ILogger<AccountsController> logger,
+        IImageRepository imageRepository)
     {
-        Repository = repository;
+        AccountRepository = accountRepository;
         this.logger = logger;
+        ImageRepository = imageRepository;
     }
 
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetPublicUserData(string id)
     {
-        var user = await Repository.GetById(id);
-        return Json(new {Name = user?.Name, Id = user?.Id.ToString()});
+        var account = await AccountRepository.GetById(id);
+        return Json(account.Adapt<AccountViewModel>());
     }
 
     [Authorize(Roles = "Administrator")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteAccount(string id)
     {
-        await Repository.Delete(new Account() {Id = id});
+        await AccountRepository.Delete(new Account() { Id = id });
         return NoContent();
     }
 
@@ -45,13 +52,9 @@ public class AccountsController : Controller
     [HttpPut("{id}/role")]
     public async Task<IActionResult> UpdateRole(string id, string role)
     {
-        if (Role.TryParse<Role>(role, out var parsed))
-        {
-            await Repository.UpdateRole(id, parsed);
-            return Ok();
-        }
-
-        return BadRequest("Invalid role");
+        if (!Enum.TryParse<Role>(role, out var parsed)) return BadRequest("Invalid role");
+        await AccountRepository.UpdateRole(id, parsed);
+        return Ok();
     }
 
     [Authorize]
@@ -60,22 +63,21 @@ public class AccountsController : Controller
     {
         var userLogin = User.Claims.FirstOrDefault(x => x.Type == "Login")?.Value;
         if (userLogin != account.Login && !User.IsInRole("Administrator")) return Forbid();
-        await Repository.Update(new Account() {Login = account.Login, Password = account.Password});
+        await AccountRepository.Update(account.Adapt<Account>());
         return Ok();
     }
 
 
     [HttpPost("registration")]
-    public async Task<IActionResult> Registration(AccountRegistration accountData)
+    public async Task<IActionResult> Registration()
     {
-        var account = new Account()
-        {
-            Name = accountData.Name,
-            Id = ObjectId.GenerateNewId().ToString(),
-            Login = accountData.Login,
-            Password = accountData.Password,
-            Role = Role.User
-        };
+        var accountData =
+            JsonSerializer.Deserialize<AccountRegistration>(Request.Form[nameof(AccountRegistration)].ToString());
+        if (accountData is null || Request.Form.Files.Count != 1)
+            return BadRequest("Invalid account data");
+        var account = accountData.Adapt<Account>();
+        var image = await ImageRepository.Add(Request.Form.Files[0]);
+        account.AvatarId = image.Id;
         if (await CreateUser(account))
             return await Login(account);
 
@@ -84,21 +86,15 @@ public class AccountsController : Controller
 
     private async Task<bool> CreateUser(Account account)
     {
-        var isExist = (await Repository.GetByLoginAsync(account.Login)) != null;
+        var isExist = (await AccountRepository.GetByLoginAsync(account.Login)) != null;
         if (isExist)
             return false;
         account.Id ??= ObjectId.GenerateNewId().ToString();
         account.Role = Role.User;
-        account = new Account
-        {
-            Name = account.Name,
-            Password = account.Password,
-            Login = account.Login,
-            Role = account.Role,
-            Id = account.Id
-        };
+        //account.Clone() saves unhashed password for autologin after registration
+        account = (Account)account.Clone();
         account.Password = account.GetHashedPassword();
-        await Repository.Create(account);
+        await AccountRepository.Create(account);
         return true;
     }
 
@@ -140,7 +136,7 @@ public class AccountsController : Controller
 
     private async Task<ClaimsIdentity?> GetIdentity(string login, string password)
     {
-        var person = await Repository.GetByLoginAsync(login);
+        var person = await AccountRepository.GetByLoginAsync(login);
         if (person == null)
             return null;
 
