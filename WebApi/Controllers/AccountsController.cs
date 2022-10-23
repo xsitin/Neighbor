@@ -13,6 +13,7 @@ namespace WebApi.Controllers;
 
 using System.Text.Json;
 using Mapster;
+using SecurityToken = Common.Models.SecurityToken;
 
 [Route("accounts")]
 [ApiController]
@@ -32,10 +33,10 @@ public class AccountsController : Controller
     }
 
 
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetPublicUserData(string id)
+    [HttpGet("{login}")]
+    public async Task<IActionResult> GetPublicUserData(string login)
     {
-        var account = await AccountRepository.GetById(id);
+        var account = await AccountRepository.GetByLoginAsync(login);
         return Json(account.Adapt<AccountViewModel>());
     }
 
@@ -120,12 +121,12 @@ public class AccountsController : Controller
 
         var encodedJwt = new JwtSecurityTokenHandler().WriteToken(jwt);
 
-        var response = new
+        var response = new SecurityToken()
         {
             AccessToken = encodedJwt,
-            username = identity.Name,
+            Login = identity.Name,
             ExpiredAt = now.Add(TimeSpan.FromMinutes(AuthOptions.Lifetime)),
-            role = identity.FindFirst(nameof(Account.Role))?.Value
+            Role = identity.FindFirst(nameof(Account.Role))?.Value
         };
         logger.Log(LogLevel.Information, "loggined {Time}",
             DateTime.Now.ToLocalTime().ToString(CultureInfo.InvariantCulture));
@@ -148,14 +149,14 @@ public class AccountsController : Controller
 
         var claims = new List<Claim>
         {
-            new(nameof(Account.Name), person.Name), new(nameof(Account.Role), person.Role.ToString())
+            new(nameof(Account.Login), person.Login), new(nameof(Account.Role), person.Role.ToString())
         };
 
         var claimsIdentity =
             new ClaimsIdentity(
                 claims,
                 "Token",
-                nameof(Account.Name),
+                nameof(Account.Login),
                 nameof(Account.Role));
         return claimsIdentity;
     }

@@ -12,6 +12,8 @@ using Microsoft.AspNetCore.Http.Extensions;
 
 namespace Board.Data;
 
+using System.Globalization;
+
 public class AdsRepository
 {
     public AdsRepository(ILocalStorageService storageService, IHttpClientFactory ClientFactory)
@@ -56,17 +58,23 @@ public class AdsRepository
         await client.SendAsync(request);
     }
 
-    public async Task<PaginationInfo<Ad>> GetMyAsync()
+    public async Task<PaginationInfo<Ad>> GetUserAdsAsync(string login, int page = 1, int pageSize = 21)
     {
         await StorageService.GetAsync<SecurityToken>(nameof(SecurityToken));
         var client = GetApiClient();
-        var request = new HttpRequestMessage(HttpMethod.Get, new Uri(client.BaseAddress, "ads/getUserAds"));
+        var queryBuilder = new QueryBuilder
+        {
+            { nameof(page), page.ToString(CultureInfo.InvariantCulture) },
+            { nameof(pageSize), pageSize.ToString(CultureInfo.InvariantCulture) }
+        };
+        var request = new HttpRequestMessage(HttpMethod.Get,
+            new Uri(client.BaseAddress, $"ads/getUserAds/{login}" + queryBuilder.ToQueryString()));
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", await GetToken());
         var response = await client.SendAsync(request);
         return await response.Content.ReadFromJsonAsync<PaginationInfo<Ad>>();
     }
 
-    public async Task<PaginationInfo<Ad>> GetWithCategory(string category, int count = 21, int offset = 0)
+    public async Task<PaginationInfo<Ad>> GetWithCategory(string category, int count = 21, int offset = 1)
     {
         var client = ClientFactory.CreateClient(Constants.ApiClientName);
         var queryBuilder = new QueryBuilder(new[]

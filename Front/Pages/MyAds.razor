@@ -1,16 +1,25 @@
 @page "/MyAds"
-@using Common.Models
 @using Board.Data
-@inject AdsRepository _repository;
+@using Common.Models
+
+
 
 @code
 {
+    [Inject]
+    AdsRepository Repository { get; set; }
+
+    [Inject]
+    AuthenticationStateProvider StateProvider { get; init; }
+
     private PaginationInfo<Ad> Ads { get; set; } = new();
 
 
     protected override async Task OnInitializedAsync()
     {
-        Ads = await _repository.GetMyAsync();
+        var state = await StateProvider.GetAuthenticationStateAsync();
+        if (state?.User?.Identity != null)
+            Ads = await Repository.GetUserAdsAsync(state.User.Identity.Name);
     }
 }
 

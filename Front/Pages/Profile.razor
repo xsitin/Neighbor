@@ -1,12 +1,25 @@
 ﻿@page "/Profile/{id}"
+@page "/Profile/{id}/page/{page:int}"
+
 <div class="container">
-    <div class="profile">
-        <div>
-            <img src="@ImageHelper.GetImageLink(AccountViewModel.AvatarId)" alt="">
+    <div class="container-fluid m-5" style="max-height:400px">
+        <div class="row m-2">
+            <div class="col-sm-3">
+                <img class="img-fluid rounded h-auto" src="@ImageHelper.GetImageLink(AccountViewModel.AvatarId)" alt="">
+            </div>
+            <div class="col-md-4 px-md-3">
+                <p class="h2">@AccountViewModel.Name</p>
+            </div>
         </div>
-        <p>@AccountViewModel.Name</p>
+
+
     </div>
     <div class="ads">
+        <AdsViewer Ads="@PageInfo.Items"></AdsViewer>
+    </div>
+    <div class="col-md-auto">
+        <PaginationComponent BaseAddress=@String.Format(@"Profile/{0}/", Id) PaginationInfo=@PageInfo>
 
+        </PaginationComponent>
     </div>
 </div>

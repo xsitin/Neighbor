@@ -14,11 +14,10 @@ public static class Program
     {
         var builder = WebAssemblyHostBuilder.CreateDefault(args);
         builder.RootComponents.Add<App>("#app");
-        var serviceAddress = "https://localhost:5000";
         builder.Services.AddHttpClient(Constants.ApiClientName,
             client =>
             {
-                client.BaseAddress = new Uri(serviceAddress);
+                client.BaseAddress = new Uri(Constants.ApiPath);
                 client.MaxResponseContentBufferSize = 2147483647;
             });
         builder.Services.AddScoped<AdsRepository>();
@@ -27,7 +26,7 @@ public static class Program
         builder.Services.AddLogging();
         builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
         builder.Services.AddScoped<ILocalStorageService, LocalStorageService>();
-        builder.Services.AddSingleton(new ImageHelper(serviceAddress));
+        builder.Services.AddSingleton(new ImageHelper(Constants.ApiPath));
         builder.Services.AddScoped<AccountRepository>();
         await builder.Build().RunAsync();
     }

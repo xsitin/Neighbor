@@ -8,6 +8,7 @@ using WebApi.Infrastructure;
 
 namespace WebApi;
 
+using Common.Data;
 using domain;
 
 public class Startup
@@ -38,10 +39,11 @@ public class Startup
 
         services.AddScoped<AdRepository>();
         services.AddScoped<IAccountRepository, AccountRepository>();
+        services.AddScoped<IRepository<Account>, AccountRepository>();
 
         services.Configure<IdentityOptions>(options =>
         {
-            options.ClaimsIdentity.UserNameClaimType = nameof(Account.Name);
+            options.ClaimsIdentity.UserNameClaimType = nameof(Account.Login);
             options.ClaimsIdentity.RoleClaimType = nameof(Account.Role);
         });
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>

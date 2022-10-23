@@ -26,7 +26,7 @@ public class CustomAuthStateProvider : AuthenticationStateProvider
         {
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, token.Username),
+                new Claim(ClaimTypes.Name, token.Login),
                 new Claim("access_token", token.AccessToken),
                 new Claim(ClaimTypes.Expired, token.ExpiredAt.ToUniversalTime().ToLongDateString()),
                 new Claim(ClaimTypes.Role, token.Role)

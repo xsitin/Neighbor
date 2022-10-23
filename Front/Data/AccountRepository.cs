@@ -27,4 +27,10 @@ public class AccountRepository
         var response = await client.SendAsync(request);
         return await response.Content.ReadFromJsonAsync<SecurityToken>();
     }
+
+    public async Task<AccountViewModel> GetAccount(string id)
+    {
+        var client = ClientFactory.CreateClient(Constants.ApiClientName);
+        return await client.GetFromJsonAsync<AccountViewModel>($"accounts/{id}");
+    }
 }

@@ -14,7 +14,7 @@ public partial class Index
     public int Page
     {
         get => PageInfo.Page;
-        set => PageInfo.Page = value >= 1 ? value : 1;
+        set => PageInfo.Page = Math.Clamp(value, 1, int.MaxValue);
     }
 
     private string SearchTitle { get; set; }
@@ -22,12 +22,11 @@ public partial class Index
 
     [Inject] public NavigationManager NavigationManager { get; set; }
 
-    private PaginationInfo<Ad> PageInfo { get; set; } = new PaginationInfo<Ad>() {PageSize = 21, Page = 1};
+    private PaginationInfo<Ad> PageInfo { get; set; } = new PaginationInfo<Ad>() { PageSize = 21, Page = 1 };
 
 
     protected override async Task OnInitializedAsync()
     {
-        Console.WriteLine(JsonSerializer.Serialize(PageInfo));
         if (PageInfo != null)
             PageInfo = await Repository.GetPopularAsync(PageInfo.Page, PageInfo.PageSize);
         else
