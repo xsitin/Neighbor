@@ -7,15 +7,23 @@
         <ValidationSummary/>
 
         <div class="my-2">
-            <label for="name">Ваше имя</label>
+            <label for="name">Ваше имя:</label>
             <InputText id="name" @bind-Value="@AccountData.Name" class="form-control"></InputText>
         </div>
         <div class="my-2">
-            <label for="username">Логин</label>
+            <label for="username">Логин:</label>
             <InputText id="username" @bind-Value="@AccountData.Login" class="form-control"></InputText>
         </div>
         <div class="my-2">
-            <label for="password">Пароль</label>
+            <label for="username">Email:</label>
+            <InputText id="username" @bind-Value="@AccountData.Email" class="form-control"></InputText>
+        </div>
+        <div class="my-2">
+            <label for="username">Номер телефона:</label>
+            <InputText id="username" @bind-Value="@AccountData.Phone" class="form-control"></InputText>
+        </div>
+        <div class="my-2">
+            <label for="password">Пароль:</label>
             <InputText type="password" id="password" @bind-Value="@AccountData.Password" class="form-control"></InputText>
         </div>
         <div class="my-2">

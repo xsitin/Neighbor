@@ -19,5 +19,7 @@ public class Account : AccountAuth, ICloneable
     [BsonRepresentation(BsonType.ObjectId)]
     public string AvatarId { get; set; }
 
+    public string Email { get; set; }
+    public string Phone { get; set; }
     public object Clone() => this.MemberwiseClone();
 }
