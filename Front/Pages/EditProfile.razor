@@ -1,0 +1,38 @@
+﻿@page "/Edit_Profile"
+
+
+<h3>Редактор профиля</h3>
+
+
+<AuthorizeView>
+    <NotAuthorized>
+        <LoginRedirectComponent></LoginRedirectComponent>
+    </NotAuthorized>
+    <Authorized Context="CascadingAuthenticationState">
+        <div class="container-lg">
+            <EditForm Model="@Modified" OnValidSubmit="@SendUpdate">
+                <DataAnnotationsValidator/>
+                <ValidationSummary/>
+                <EditableField Label="Ваше имя:" Value="@(Modified.Name ?? "")" OnChange="(s) => ChangeValue(nameof(Modified.Name), s)"></EditableField>
+                <EditableField Label="Логин:" Value="@(Modified.Login ?? "")" OnChange="(s) => ChangeValue(nameof(Modified.Login), s)"></EditableField>
+                <EditableField Label="Email:" Value="@(Modified.Email ?? "")" OnChange="(s) => ChangeValue(nameof(Modified.Email), s)"></EditableField>
+                <EditableField Label="Номер телефона:" Value="@(Modified.Phone ?? "")" OnChange="(s) => ChangeValue(nameof(Modified.Phone), s)"></EditableField>
+                <EditableField Label="Пароль:" Value="@(Modified.Password ?? "")" OnChange="(s) => ChangeValue(nameof(Modified.Password), s)"></EditableField>
+                <div class="my-2">
+                    <label for="loadImages">Загрузить фото:</label>
+                    <InputFile class="form-control" accept="image/jpeg,image/png" id="loadImages" OnChange="ImageChanged">
+
+                    </InputFile>
+                </div>
+                <p class="my-4">
+                    <button class="btn btn-primary" type="submit">Сохранить</button>
+                </p>
+                <p class="my-4">
+                    <button class="btn btn-primary" type="reset">Отменить</button>
+                </p>
+            </EditForm>
+        </div>
+    </Authorized>
+
+
+</AuthorizeView>

@@ -1,0 +1,9 @@
+﻿<div class="my-2">
+    <label for="name">@Label</label>
+    <div class="input-group mb-3">
+        <button @onclick="OnClick" disabled="@(!IsDisabled)" class="btn btn-outline-secondary" type="button" id="button-addon1">
+           <span>Изменить</span>
+        </button>
+        <InputText id="name" disabled="@IsDisabled" @bind-Value="@Value" class="form-control"></InputText>
+    </div>
+</div>

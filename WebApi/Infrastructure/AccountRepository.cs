@@ -30,11 +30,7 @@ public class AccountRepository : IAccountRepository
     public async Task Update(Account account)
     {
         var filter = new ExpressionFilterDefinition<Account>(x => x.Login == account.Login);
-        var updateDefinition = Builders<Account>
-            .Update
-            .Set(x => x.Login, account.Login)
-            .Set(x => x.Password, account.GetHashedPassword());
-        await Collection.UpdateOneAsync(filter, updateDefinition);
+        await Collection.ReplaceOneAsync(x => x.Id == account.Id, account);
     }
 
     public async Task UpdateRole(string id, Role role) =>

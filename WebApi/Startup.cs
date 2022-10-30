@@ -71,7 +71,7 @@ public class Startup
                 builder.AllowAnyOrigin();
             });
         });
-        services.AddControllers();
+        services.AddControllers().AddNewtonsoftJson();
         services.AddSwaggerGen(c =>
         {
             c.SwaggerDoc("v1", new OpenApiInfo { Title = "Neighbor WebApi", Version = "v1" });

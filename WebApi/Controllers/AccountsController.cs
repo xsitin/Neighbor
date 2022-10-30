@@ -13,6 +13,7 @@ namespace WebApi.Controllers;
 
 using System.Text.Json;
 using Mapster;
+using Microsoft.AspNetCore.JsonPatch;
 using SecurityToken = Common.Models.SecurityToken;
 
 [Route("accounts")]
@@ -40,6 +41,18 @@ public class AccountsController : Controller
         return Json(account.Adapt<AccountViewModel>());
     }
 
+    [Authorize]
+    [HttpGet("{login}/full")]
+    public async Task<IActionResult> GetFullUserData(string login)
+    {
+        var userLogin = User.Claims.First(x => x.Type == nameof(Account.Login)).Value;
+        if (userLogin != login && !User.IsInRole("Administrator"))
+            return Forbid();
+
+        var account = await AccountRepository.GetByLoginAsync(login);
+        return Json(account);
+    }
+
     [Authorize(Roles = "Administrator")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteAccount(string id)
@@ -65,6 +78,28 @@ public class AccountsController : Controller
         var userLogin = User.Claims.FirstOrDefault(x => x.Type == "Login")?.Value;
         if (userLogin != account.Login && !User.IsInRole("Administrator")) return Forbid();
         await AccountRepository.Update(account.Adapt<Account>());
+        return Ok();
+    }
+
+    [Authorize]
+    [HttpPatch("{login}")]
+    public async Task<IActionResult> Update(string login, [FromBody] JsonPatchDocument patchDocument)
+    {
+        var account = await AccountRepository.GetByLoginAsync(login);
+        if (account == null)
+        {
+            logger.LogTrace($"Not found account with login: {login}");
+            return NotFound();
+        }
+
+        patchDocument.ApplyTo(account);
+        if (patchDocument.Operations.Any(x => x.path == nameof(Account.Password)))
+        {
+            account.Password = account.GetHashedPassword();
+        }
+
+
+        await AccountRepository.Update(account);
         return Ok();
     }
 

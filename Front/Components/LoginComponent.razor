@@ -1,6 +1,7 @@
 @using Microsoft.AspNetCore.Components
 @using Common.Models
 @using Board.Infrastructure
+@using Microsoft.CodeAnalysis.Scripting
 @using Microsoft.Extensions.Logging
 @using Microsoft.VisualStudio.Web.CodeGeneration
 
@@ -20,6 +21,7 @@
     </p>
 </EditForm>
 
+
 @code
 {
     public AccountAuth AccountData { get; set; } = new AccountAuth();
@@ -36,6 +38,13 @@
     [Inject]
     private IHttpClientFactory clientFactory { get; set; }
 
+    [Inject]
+    private IJSRuntime js { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await js.InvokeVoidAsync("OpenModal");
+    }
 
     public async Task LoginAsync()
     {

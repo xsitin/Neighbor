@@ -51,7 +51,6 @@ public class AdsRepository
 
     public async Task RemoveByIdAsync(string id)
     {
-        await StorageService.GetAsync<SecurityToken>(nameof(SecurityToken));
         var client = GetApiClient();
         var request = new HttpRequestMessage(HttpMethod.Delete, new Uri(client.BaseAddress, $"ads/{id}/delete"));
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", await GetToken());
