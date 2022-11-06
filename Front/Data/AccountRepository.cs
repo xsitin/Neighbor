@@ -11,7 +11,6 @@ using Infrastructure;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.JsonPatch;
 using Newtonsoft.Json;
-using JsonSerializer = System.Text.Json.JsonSerializer;
 
 public class AccountRepository
 {
@@ -36,7 +35,7 @@ public class AccountRepository
         var client = ClientFactory.CreateClient(Constants.ApiClientName);
         var request = new HttpRequestMessage(HttpMethod.Post, new Uri(client.BaseAddress!, "accounts/registration"));
         var content = new MultipartFormDataContent();
-        content.Add(new StringContent(JsonSerializer.Serialize(account)), nameof(AccountRegistration));
+        content.Add(JsonContent.Create(account), nameof(AccountRegistration));
         content.Add(new StreamContent(avatar.OpenReadStream()), nameof(avatar), avatar.Name);
         request.Content = content;
         var response = await client.SendAsync(request);
