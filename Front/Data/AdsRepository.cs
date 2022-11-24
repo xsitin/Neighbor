@@ -10,6 +10,7 @@ using Common.Models;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Http.Extensions;
 
+
 namespace Board.Data;
 
 using System.Globalization;
@@ -113,10 +114,12 @@ public class AdsRepository
         var client = GetApiClient();
         var request = new HttpRequestMessage(HttpMethod.Patch, new Uri(client.BaseAddress, "ads/update"));
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", await GetToken());
+
         var content = new MultipartFormDataContent();
         content.Add(new StringContent(JsonSerializer.Serialize(ad)), nameof(Ad));
         foreach (var image in images)
             content.Add(new StreamContent(image.OpenReadStream(int.MaxValue)), image.Name, image.Name);
+
         request.Content = content;
         await client.SendAsync(request);
     }
@@ -126,12 +129,12 @@ public class AdsRepository
         var client = GetApiClient();
         var request = new HttpRequestMessage(HttpMethod.Post, new Uri(client.BaseAddress, "ads/add"));
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", await GetToken());
+
         var content = new MultipartFormDataContent();
         content.Add(JsonContent.Create(ad, MediaTypeHeaderValue.Parse("application/json")), nameof(Ad));
-        content.Add(new StreamContent(images[0].OpenReadStream(int.MaxValue)), "Image", images[0].Name);
-        /*content.Add(new StringContent(JsonSerializer.Serialize(ad)), nameof(Ad));
         foreach (var image in images)
-            content.Add(new StreamContent(image.OpenReadStream(int.MaxValue)), image.Name, image.Name);*/
+            content.Add(new StreamContent(image.OpenReadStream(int.MaxValue)), nameof(images), image.Name);
+
         request.Content = content;
         await client.SendAsync(request);
     }
