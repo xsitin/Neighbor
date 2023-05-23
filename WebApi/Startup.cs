@@ -26,6 +26,7 @@ public class Startup
                                      Configuration["ConnectionStrings:Mongo"]);
         var db = client.GetDatabase("Board");
         services.AddSingleton(_ => db);
+        services.AddCors(options => options.AddDefaultPolicy(builder => builder.AllowAnyOrigin()));
         services.AddLogging(builder =>
         {
             builder.AddConsole();

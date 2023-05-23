@@ -1,14 +1,13 @@
+namespace WebApi.Controllers;
+
 using System.Net.Mime;
 using System.Text.Json;
+using Common.Data;
 using Common.Models;
+using Infrastructure;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
-using WebApi.Infrastructure;
-
-namespace WebApi.Controllers;
-
-using Common.Data;
 
 [ApiController]
 [Route("ads")]
@@ -89,10 +88,14 @@ public class AdvertisementsController : Controller
     [HttpPost("add")]
     public async Task<IActionResult> LoadAd()
     {
-        var ad = JsonSerializer.Deserialize<Ad>(Request.Form[nameof(Ad)].ToString());
+        var ad = JsonSerializer.Deserialize<Ad>(Request.Form[nameof(Ad)].ToString(),
+            new JsonSerializerOptions(JsonSerializerDefaults.Web));
         var username = User.Claims.First(x => x.Type == nameof(Account.Login)).Value;
         if (username != ad.OwnerName && !User.IsInRole("Administrator"))
+        {
             return Forbid();
+        }
+
         var images = Request.Form.Files;
         var saveTasks = ImageRepository.AddAll(images).ToArray();
         Task.WaitAll(saveTasks);

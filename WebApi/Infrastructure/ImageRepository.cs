@@ -1,8 +1,8 @@
+namespace WebApi.Infrastructure;
+
 using Common.Models;
 using MongoDB.Bson;
 using MongoDB.Driver;
-
-namespace WebApi.Infrastructure;
 
 public class ImageRepository : IImageRepository
 {
@@ -18,26 +18,19 @@ public class ImageRepository : IImageRepository
     public byte[] GetContent(string id)
     {
         var builder = new FilterDefinitionBuilder<ImageDocument>();
-        var imageDocument = Collection.Find(builder.Eq<string>(x => x.Id,id)).First();
-        return File.ReadAllBytes(Path.Combine(pathToFilesDirectory, imageDocument.Path));
+        var imageDocument = Collection.Find(builder.Eq<string>(x => x.Id, id)).First();
+        return imageDocument.Content;
     }
 
-    private async Task Add(ImageDocument imageDocument, IFormFile img)
+
+    public async Task<ImageDocument> Add(IFormFile image)
     {
-        await Collection?.InsertOneAsync(imageDocument)!;
-        Directory.CreateDirectory(Path.Combine(pathToFilesDirectory,
-            imageDocument.Path.Split(Path.DirectorySeparatorChar)[0]));
-        var file = File.OpenWrite(Path.Combine(pathToFilesDirectory, imageDocument.Path));
-        var imageStream = img.OpenReadStream();
-        await imageStream.CopyToAsync(file);
-        file.Close();
+        var imageStream = image.OpenReadStream();
+        var content = new byte[imageStream.Length];
+        await imageStream.ReadAsync(content);
         imageStream.Close();
-    }
-
-    public async Task<ImageDocument> Add(IFormFile file)
-    {
-        var doc = ImageDocument.Create();
-        await Add(doc, file);
+        var doc = new ImageDocument(content);
+        await Collection?.InsertOneAsync(doc)!;
         return doc;
     }
 

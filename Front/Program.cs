@@ -1,12 +1,12 @@
+namespace Board;
+
 using System;
 using System.Threading.Tasks;
-using Board.Data;
-using Board.Infrastructure;
+using Data;
+using Infrastructure;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-
-namespace Board;
 
 public static class Program
 {
