@@ -10,6 +10,6 @@ public interface IImageRepository : IRepository<ImageDocument>
     public Task DeleteManyAsync(IEnumerable<string> ids);
     public Task DeleteManyAsync(IEnumerable<ObjectId> ids);
     public byte[] GetContent(string id);
-    public Task<ImageDocument> Add(IFormFile file);
+    public Task<ImageDocument> Add(IFormFile image);
     IEnumerable<Task<ImageDocument>> AddAll(IFormFileCollection files);
 }

@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Http.Extensions;
 namespace Board.Data;
 
 using System.Globalization;
+using Microsoft.AspNetCore.Components.WebAssembly.Http;
 
 public class AdsRepository
 {
@@ -128,7 +129,6 @@ public class AdsRepository
     {
         var client = GetApiClient();
         var request = new HttpRequestMessage(HttpMethod.Post, new Uri(client.BaseAddress, "ads/add"));
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", await GetToken());
 
         var content = new MultipartFormDataContent();
         content.Add(JsonContent.Create(ad, MediaTypeHeaderValue.Parse("application/json")), nameof(Ad));
@@ -136,6 +136,9 @@ public class AdsRepository
             content.Add(new StreamContent(image.OpenReadStream(int.MaxValue)), nameof(images), image.Name);
 
         request.Content = content;
+        request.SetBrowserRequestMode(BrowserRequestMode.Cors);
+        var token = await GetToken();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", token.Trim());
         await client.SendAsync(request);
     }
 
