@@ -1,6 +1,6 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace Common.Models;
+
+using System.ComponentModel.DataAnnotations;
 
 public class AccountRegistration : AccountAuth
 {

@@ -108,7 +108,7 @@ public class AccountsController : Controller
     public async Task<IActionResult> Registration()
     {
         var accountData =
-            JsonSerializer.Deserialize<AccountRegistration>(Request.Form[nameof(AccountRegistration)].ToString());
+            JsonSerializer.Deserialize<AccountRegistration>(Request.Form[nameof(AccountRegistration)].ToString(), new JsonSerializerOptions {PropertyNameCaseInsensitive = true});
         if (accountData is null || Request.Form.Files.Count != 1)
             return BadRequest("Invalid account data");
         var account = accountData.Adapt<Account>();
